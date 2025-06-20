@@ -18,6 +18,7 @@ const authController = {
                 domain: 'localhost',
                 path: "/"
             })
+            console.log('Received request for login with username:', username);
             response.json({message:"User authenticated successfully", userDetails: userDetails});
         } else {
             response.status(401).json({ message: 'Invalid credentials' });
@@ -39,7 +40,7 @@ const authController = {
                     return response.status(401).json({ message: 'Unauthorized access' });
                 }
                 else{
-                response.json({userDetails: userDetails });
+                response.json({userDetails: decoded });
                 }
             });
         }
