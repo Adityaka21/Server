@@ -5,9 +5,14 @@ const bcrypt = require('bcryptjs');
 const secret = "abcd";
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../model/Users'); // Importing User model
+const { validationResult } = require('express-validator');
 const authController = {
     login: async (request, response) => {
-        const { username, password } = request.body;
+        // const { username, password } = request.body;
+        const errors  = validationResult(request);
+        if (!errors.isEmpty()) {
+            return response.status(400).json({ errors: errors.array() });
+        }
 
          try {
             const { username, password } = request.body;
