@@ -2,10 +2,11 @@ const { request } = require('http');
 const jwt = require('jsonwebtoken');
 const { register } = require('module');
 const bcrypt = require('bcryptjs');
-const secret = "abcd";
+const secret = "wC9_Ebs3FbHcu-Jsdf89sfkuSjdf9sdfjsdfYhsdfsfKdjH";
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../model/Users'); // Importing User model
 const { validationResult } = require('express-validator');
+const path = require('path');
 const authController = {
     login: async (request, response) => {
         // const { username, password } = request.body;
@@ -43,7 +44,7 @@ const authController = {
             })
             // console.log('Received request for login with username:', username);
             response.json({message:"User authenticated successfully", userDetails: userDetails});
-        } catch(errror) {
+        } catch(error) {
             console.log(error);
             response.status(401).json({ message: 'Internal Server Error' });
         }
@@ -72,7 +73,7 @@ const authController = {
 
         register: async(request, response) => {
             try{
-            const { username, password, name} = request.body;
+                const { username, password, name} = request.body;
 
             const data = await User.findOne({ email: username });
             if (data) {
@@ -85,7 +86,20 @@ const authController = {
                 name: name
             });
             await user.save();
-            response.status(200).json({ message: 'User registered successfully' });
+            const userDetails = {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            };
+            const token = jwt.sign( userDetails,secret,{expiresIn: '1h'});
+            response.cookie('jwtToken', token, {
+                httpOnly: true, 
+                secure: true,
+                domain: 'localhost',
+                path: "/"
+            });
+
+            response.json({message: "User registered successfully", userDetails: userDetails});
         } catch (error) {
             console.log(error);
             response.status(500).json({ message: 'Internal server error' });

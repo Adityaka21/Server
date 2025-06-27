@@ -3,6 +3,8 @@ const cookieParser = require('cookie-parser'); // Cookie parser module included
 const cors = require('cors'); // CORS module included
 
 const authRoutes = require('./src/routes/authRoutes'); // Importing auth routes
+const linksRoutes = require('./src/routes/linksRoutes'); // Importing links routes
+
 
  require('dotenv').config(); // Load environment variables from .env file
 
@@ -19,6 +21,8 @@ const corsOptions = {
 app.use(cors(corsOptions)); // Use CORS middleware with specified options
 
 app.use('/auth', authRoutes); // Mounting auth routes on /auth path
+app.use('/links', linksRoutes); // Mounting links routes on /links path\
+
 
 mongoose.connect(process.env.MONGO_URI).then(() => console.log('Database connected successfully'))
 .catch((error) =>
