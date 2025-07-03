@@ -33,7 +33,9 @@ const authController = {
                id: data._id, 
                 name: data.name,
                 email: data.email,
-                role: data.role?data.role : 'admin' //This is ensure backward compatiblity
+                role: data.role?data.role : 'admin' ,//This is ensure backward compatiblity
+                adminId: data.adminId,
+                credits: data.credits
             };
             const token = jwt.sign( userDetails,secret,{expiresIn: '1h'});
 
@@ -85,14 +87,16 @@ const authController = {
                 email: username,
                 password: encryptedPassword,
                 name: name,
-                role: 'admin'
+                role: 'admin',
+                
             });
             await user.save();
             const userDetails = {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: 'admin'
+                role: 'admin',
+                credits: user.credits,
             };
             const token = jwt.sign( userDetails,secret,{expiresIn: '1h'});
             response.cookie('jwtToken', token, {
@@ -130,7 +134,8 @@ const authController = {
                     name: name,
                     isGoogleUser: true,
                     googleId: googleId,
-                    role: 'admin'
+                    role: 'admin',
+                    
                 });
                 await data.save();
             } 
@@ -139,7 +144,8 @@ const authController = {
                 id: data._id?data._id : googleId,
                 username: email,
                 name: name,
-                role: data.role ? data.role: 'admin'
+                role: data.role ? data.role: 'admin',
+                credits: data.credits
             };
               const token = jwt.sign( user,secret,{expiresIn: '1h'});
 

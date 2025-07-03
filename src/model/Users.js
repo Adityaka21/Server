@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema({
     isGoogleUser: {type: Boolean,required: false},
     googleId: {type: String,required: false},
     role: { type: String,default: 'admin'},
-    adminId: {type: mongoose.Schema.Types.ObjectId, ref: 'Users', index: true}
+    adminId: {type: mongoose.Schema.Types.ObjectId, ref: 'Users', index: true},
+    credits: {type: Number, default: 0}
     
 });
 
