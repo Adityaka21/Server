@@ -3,11 +3,10 @@ const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const authorize = require('../middleware/authorizeMiddleware');
 const paymentController = require('../controller/paymentController');
-const { route } = require('./userRoutes');
 
 router.use(authMiddleware.protect);
 
-router.post('.create-order',authorize('payment:create'),paymentController.createOrder);
-router.post('.verify-order',authorize('payment:create'),paymentController.verifyOrder);
+router.post('/create-order',authorize('payment:create'),paymentController.createOrder);
+router.post('/verify-order',authorize('payment:create'),paymentController.verifyOrder);
 
 module.exports = router;

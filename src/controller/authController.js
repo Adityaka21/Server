@@ -7,6 +7,7 @@ const { OAuth2Client } = require('google-auth-library');
 const User = require('../model/Users'); // Importing User model
 const { validationResult } = require('express-validator');
 const path = require('path');
+const Users = require('../model/Users');
 const authController = {
     login: async (request, response) => {
         // const { username, password } = request.body;
@@ -59,17 +60,18 @@ const authController = {
             response.json({message: "User logged out successfully"});
         },
 
-        isUserLoggedIn: (request, response) => {
+        isUserLoggedIn: async(request, response) => {
             const token = request.cookies.jwtToken;
             if (!token) {
                 return response.status(401).json({ message: 'Unauthorized access' });
             }
-            jwt.verify(token, secret, (err, decoded) => {
+            jwt.verify(token, secret, async(err, decoded) => {
                 if (err) {
                     return response.status(401).json({ message: 'Unauthorized access' });
                 }
                 else{
-                response.json({userDetails: decoded });
+                    const data = await Users.findById({_id: decoded.id});
+                    return response.json({userDetails: data });
                 }
             });
         },

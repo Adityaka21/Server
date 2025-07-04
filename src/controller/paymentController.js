@@ -1,11 +1,12 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { CREDIT_PACKS } = require('../constants/payments');
-
+const Users = require('../model/Users')
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
-    key_secrets: process.env.RAZORPAY_KEY_SECRET
+    key_secret: process.env.RAZORPAY_KEY_SECRET
 });
+
 const paymentController = {
     createOrder: async (request, response) => {
         try {
@@ -55,7 +56,7 @@ const paymentController = {
                 });
             }
             const user = await Users.findById({_id: request.user.id});
-            user.credit += Number(credits);
+            user.credits += Number(credits);
             await user.save();
 
             response.json({user: user});
@@ -68,4 +69,4 @@ const paymentController = {
     },
 };
 
-module.exports = { paymentController };
+module.exports = paymentController;
