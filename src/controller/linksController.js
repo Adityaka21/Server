@@ -10,6 +10,7 @@ const linkController = {
             const user = await Users.findById({_id: request.user.id});
             if (user.credits < 1){
                 return response.status(400).json({
+                    code : "ISUFFICIENT_FUNDS",
                     message: "Insufficient Credits"
                 });
             }
