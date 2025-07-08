@@ -2,7 +2,6 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { CREDIT_PACKS, PLAN_IDS } = require('../constants/payments');
 const Users = require('../model/Users');
-const { log } = require('console');
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
@@ -128,7 +127,7 @@ const paymentController = {
     handleWebhookEvent: async (request, response) => {
         try {
             console.log("Recevied event.....");
-            const signature = request.header['x-razorpay-signature'];
+            const signature = request.headers['x-razorpay-signature'];
             const body = request.body;
 
             const expectedSignature = crypto
@@ -147,7 +146,7 @@ const paymentController = {
             const razorpaySubscriptionId = subscriptionData.id;
             let userId = subscriptionData.notes?.userId;
             if (!userId) {
-                console.log(error);
+               
                 response.status(400).send('UserId not found via notes');
             }
 
@@ -176,17 +175,17 @@ const paymentController = {
                         'subscription.id': razorpaySubscriptionId,
                         'subscription.status': newStatus,
                         'subscription.start': subscriptionData.start_at
-                            ? new Date(subscription.start_at * 1000)
+                            ? new Date(subscriptionData.start_at * 1000)
                             : null,
                         'subscription.end': subscriptionData.start_at
-                            ? new Date(subscription.end_at * 1000)
+                            ? new Date(subscriptionData.end_at * 1000)
                             : null,
 
                         'subscription.lastBillDate': subscriptionData.current_start
-                            ? new Date(subscription.current_start * 1000)
+                            ? new Date(subscriptionData.current_start * 1000)
                             : null,
                         'subscription.nextBillDate': subscriptionData.current_end
-                            ? new Date(subscription.current_end * 1000)
+                            ? new Date(subscriptionData.current_end * 1000)
                             : null,
                         'subscription.paymentMade': subscriptionData.paid_count,
                         'subscription.paymentsRemaining': subscriptionData.remaining_count,
@@ -200,7 +199,7 @@ const paymentController = {
             if (!user) {
                 response.status(400).send('UserId not found via notes');
             }
-            console.log(`Updated subscription for user ${user.username} to ${newStatus}`);
+            console.log(`Updated subscription for user ${userId} to ${newStatus}`);
             return response.status(200).send('Event processed');
         } catch (error) {
             console.log(error);
