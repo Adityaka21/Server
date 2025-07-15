@@ -1,7 +1,8 @@
-const { request } = require("http");
-const { userInfo } = require("os");
 const Links = require("../model/Links");
 const Users = require("../model/Users");
+const Clicks = require("../model/Clicks");
+const { getDeviceInfo } = require("../util/linksUtility");
+const axios = require('axios');
 
 const linkController = {
     create: async (request, response) => {
@@ -81,7 +82,7 @@ const linkController = {
                 return response.status(401).json({ message: 'Link ID is required' });
             }
 
-            const link = await Links.findById(linkId);
+            let link = await Links.findById(linkId);
             if (!link) {
                 return response.status(404).json({ error: 'Link not found' });
             }
@@ -143,6 +144,35 @@ const linkController = {
                 return response.status(404).json({ error: 'Link not found' });
             }
 
+            const isDevelopment = process.env.NODE_ENV === 'development';
+            const ipAddress = isDevelopment 
+            ? '8.8.8.8'
+            : request.headers['x-forward-for']?.split(',')[0] || request.socket.remoteAddress;
+            
+            const getResponse = await axios.get(`http://ip-api.com/json/${ipAddress}`);
+            const { city, country, region,lat,lon,isp} = getResponse.data;
+
+            const userAgent = request.headers['user-agent'] || 'Unknown';
+            const { deviceType, browser} = getDeviceInfo(userAgent);
+
+            const refferrer = request.get('Refferrer') || null;
+
+            await Clicks.create({
+                linkId: link._id,
+                ip: ipAddress,
+                city: city,
+                country: country,
+                region: region,
+                latitude: lat,
+                longitude: lon,
+                isp: isp,
+                refferrer: refferrer,
+                userAgent: userAgent,
+                deviceType: deviceType,
+                browser: browser,
+                clickedAt: new Date()
+            });
+
             link.clickcount += 1;
             await link.save();
 
@@ -152,6 +182,37 @@ const linkController = {
             response.status(500).json({ message: 'Internal server error' });
         }
     },
+
+    analytics: async(request,response) => {
+        try{
+            const { linkId, from ,to} = request.query;
+
+            const link = await Links.findById(linkId);
+            if(!link){
+                return response.status(404).json({ error: 'Link not found' });
+            }
+            
+            const userId = request.user.role === 'admin' ? request.user.id : request.user.adminId;
+            if(link.user.toString()!== userId){
+                return response.status(403).json({ error: 'Unauthorized access' });
+
+            } 
+
+            const query = {
+                linkId: linkId,
+            };
+            if(from && to ){
+                query.clickedAt =  { $gte: new Date(from), $lte: new Date(to)};
+            }
+            const data = await Clicks.find(query).sort({ clickedAt: -1});
+            response.json(data);
+
+        }catch(error){
+              console.log(error);
+            response.status(500).json({ message: 'Internal server error' });
+        
+        }
+    }
 };
 
 module.exports = linkController;
