@@ -8,10 +8,10 @@ const linkController = {
     create: async (request, response) => {
         const { compaignTitle, orginalUrl, category, thumbnail } = request.body;
         try {
-            const user = await Users.findById({_id: request.user.id});
-            if (user.credits < 1){
+            const user = await Users.findById({ _id: request.user.id });
+            if (user.credits < 1) {
                 return response.status(400).json({
-                    code : "ISUFFICIENT_FUNDS",
+                    code: "ISUFFICIENT_FUNDS",
                     message: "Insufficient Credits"
                 });
             }
@@ -39,14 +39,40 @@ const linkController = {
 
     getAll: async (request, response) => {
         try {
+            const {
+                currentPage = 0, pageSize = 10, // Pagination
+                searchTerm = '',                // Searching
+                sortField = 'createdAt', sortOrder = 'desc' // Sorting
+            } = request.query;
+
             const userId = request.user.role === 'admin' ? request.user.id : request.user.adminId;
-            const links = await Links.find({ user: userId }).sort({ createdAt: -1 });
-            return response.json({ data: links });
+            const skip = parseInt(currentPage) * parseInt(pageSize);
+            const limit = parseInt(pageSize);
+            const sort = { [sortField]: sortOrder === 'desc' ? -1 : 1 };
 
+            const query = {
+                user: userId
+            };
 
+            if (searchTerm) {
+                query.$or = [
+                    { compaignTitle: new RegExp(searchTerm, 'i') },
+                    { category: new RegExp(searchTerm, 'i') },
+                    { orginalUrl: new RegExp(searchTerm, 'i') },
+                ];
+            }
+
+            const links = await Links.find(query)
+                .sort(sort)
+                .skip(skip)
+                .limit(limit);
+
+            const total = await Links.countDocuments(query);
+
+            response.json({ data: { links, total } });
         } catch (error) {
             console.log(error);
-            response.status(500).json({ message: 'Internal server error' });
+            response.status(500).json({ error: 'Internal server error' });
         }
     },
 
@@ -145,15 +171,15 @@ const linkController = {
             }
 
             const isDevelopment = process.env.NODE_ENV === 'development';
-            const ipAddress = isDevelopment 
-            ? '8.8.8.8'
-            : request.headers['x-forward-for']?.split(',')[0] || request.socket.remoteAddress;
-            
+            const ipAddress = isDevelopment
+                ? '8.8.8.8'
+                : request.headers['x-forward-for']?.split(',')[0] || request.socket.remoteAddress;
+
             const getResponse = await axios.get(`http://ip-api.com/json/${ipAddress}`);
-            const { city, country, region,lat,lon,isp} = getResponse.data;
+            const { city, country, region, lat, lon, isp } = getResponse.data;
 
             const userAgent = request.headers['user-agent'] || 'Unknown';
-            const { deviceType, browser} = getDeviceInfo(userAgent);
+            const { deviceType, browser } = getDeviceInfo(userAgent);
 
             const refferrer = request.get('Refferrer') || null;
 
@@ -183,34 +209,34 @@ const linkController = {
         }
     },
 
-    analytics: async(request,response) => {
-        try{
-            const { linkId, from ,to} = request.query;
+    analytics: async (request, response) => {
+        try {
+            const { linkId, from, to } = request.query;
 
             const link = await Links.findById(linkId);
-            if(!link){
+            if (!link) {
                 return response.status(404).json({ error: 'Link not found' });
             }
-            
+
             const userId = request.user.role === 'admin' ? request.user.id : request.user.adminId;
-            if(link.user.toString()!== userId){
+            if (link.user.toString() !== userId) {
                 return response.status(403).json({ error: 'Unauthorized access' });
 
-            } 
+            }
 
             const query = {
                 linkId: linkId,
             };
-            if(from && to ){
-                query.clickedAt =  { $gte: new Date(from), $lte: new Date(to)};
+            if (from && to) {
+                query.clickedAt = { $gte: new Date(from), $lte: new Date(to) };
             }
-            const data = await Clicks.find(query).sort({ clickedAt: -1});
+            const data = await Clicks.find(query).sort({ clickedAt: -1 });
             response.json(data);
 
-        }catch(error){
-              console.log(error);
+        } catch (error) {
+            console.log(error);
             response.status(500).json({ message: 'Internal server error' });
-        
+
         }
     }
 };
