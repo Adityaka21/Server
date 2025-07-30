@@ -44,17 +44,15 @@ const authController = {
             response.cookie('jwtToken', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                domain: process.env.COOKIE_DOMAIN || 'localhost',
-                path: "/",
-                sameSite: 'Strict',
+                path: '/',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
             });
 
             response.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                domain: process.env.COOKIE_DOMAIN || 'localhost',
                 path: '/',
-                sameSite: 'Strict'
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
             });
 
             response.json({ message: "User authenticated successfully", userDetails });
@@ -131,17 +129,15 @@ const authController = {
             response.cookie('jwtToken', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                domain: process.env.COOKIE_DOMAIN || 'localhost',
                 path: '/',
-                sameSite: 'Strict',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
             });
 
             response.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                domain: process.env.COOKIE_DOMAIN || 'localhost',
                 path: '/',
-                sameSite: 'Strict',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
             });
 
             response.json({ message: "User registered successfully", userDetails });
@@ -195,9 +191,8 @@ const authController = {
             response.cookie('jwtToken', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                domain: process.env.COOKIE_DOMAIN || 'localhost',
                 path: '/',
-                sameSite: 'Strict',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
             });
 
             response.json({ message: "User authenticated successfully", userDetails });
@@ -235,9 +230,8 @@ const authController = {
             response.cookie('jwtToken', newAccessToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                domain: process.env.COOKIE_DOMAIN || 'localhost',
                 path: '/',
-                sameSite: 'Strict',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
             });
 
             response.json({ message: 'Token refreshed', userDetails });
@@ -264,7 +258,7 @@ const authController = {
 
             const resetLink = `${process.env.CLIENT_URL}/reset-password`;
             await send(email, 'Reset Your Password', `Click the link to reset your password: ${resetLink}\nThe code is: ${token}`);
-           
+
             res.status(200).json({ message: 'Reset password link sent' });
         } catch (error) {
             console.error(error);
