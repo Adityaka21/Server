@@ -95,8 +95,8 @@ const authController = {
 
     register: async (request, response) => {
         try {
-            const { username, password, name } = request.body;
-            const existingUser = await User.findOne({ email: username });
+            const { email, password, name } = request.body;
+            const existingUser = await User.findOne({ email: email });
 
             if (existingUser) {
                 return response.status(400).json({ message: 'User already exists' });
@@ -105,7 +105,7 @@ const authController = {
             const encryptedPassword = await bcrypt.hash(password, 10);
 
             const user = new User({
-                email: username,
+                email: email,
                 password: encryptedPassword,
                 name,
                 role: 'admin',
